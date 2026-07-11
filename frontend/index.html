@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Aggregator</title>
+  <link rel="stylesheet" href="style.css">
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+  />
+</head>
+<body>
+<div class="container">
+  <h1>
+    <i class="fa-solid fa-cloud-sun"></i>
+    Weather Aggregator
+  </h1>
+  <div class="search-box">
+    <input
+      type="text"
+      id="city"
+      placeholder="Enter city name..."
+    >
+
+    <button onclick="getWeather()" class="search-btn">
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </button>
+    <button onclick="getCurrentLocation()" class="location-btn">
+      <i class="fa-solid fa-location-dot"></i>
+    </button>
+  </div>
+  <div class="top-buttons">
+    <button id="themeBtn">
+      🌙 Dark Mode
+    </button>
+    <button id="favBtn">
+      ❤️ Favourite
+    </button>
+    <div id="favourites"></div>
+  </div>
+  <div id="recent"></div>
+  <div id="result"></div>
+  <h2 class="section-title">
+    5 Day Forecast
+  </h2>
+  <div id="forecast"></div>
+  <h2 class="section-title">
+    Temperature Chart
+  </h2>
+  <canvas id="chart"></canvas>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
