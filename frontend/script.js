@@ -16,7 +16,7 @@ async function getWeather() {
   `;
   try {
     const response = await fetch(
-      `http://localhost:5000/api/weather/${city}`
+      `https://weather-aggregator-api.onrender.com/api/weather/${encodeURIComponent(city)}`
     );
     const data = await response.json();
     console.log(data);
@@ -156,10 +156,10 @@ async function getCurrentLocation() {
     const lon = position.coords.longitude;
     try {
       const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=968f4919aaca76d8b4663f55bf8a2fa1&units=metric`
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=10`
       );
       const data = await response.json();
-      document.getElementById("city").value = data.name;
+      document.getElementById("city").value = data.address?.city || data.address?.town || data.address?.village || data.address?.county || "";
       getWeather();
     } catch (err) {
       alert("Unable to get location.");
