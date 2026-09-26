@@ -46,7 +46,7 @@ exports.getWeather = async (req, res) => {
       weather: [{ main, description, icon: icon + (current.is_day ? "d" : "n") }],
     });
   } catch (error) {
-    console.error("Weather request failed:", error.response?.data || error.message);
+    console.error("Weather request failed:", JSON.stringify({ status: error.response?.status, data: error.response?.data, message: error.message, code: error.code }));
     res.status(502).json({ message: "Weather service is temporarily unavailable" });
   }
 };
