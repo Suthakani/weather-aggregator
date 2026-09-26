@@ -1,4 +1,16 @@
-const axios = require("axios");
+async function getJson(url, params) {
+  const requestUrl = new URL(url);
+  Object.entries(params).forEach(([key, value]) => requestUrl.searchParams.set(key, value));
+  const response = await fetch(requestUrl, { signal: AbortSignal.timeout(15000) });
+  const data = await response.json();
+  if (!response.ok) {
+    const error = new Error("Weather provider request failed");
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+  return data;
+}
 
 const weatherConditions = {
   0: ["Clear sky", "Clear", "01"], 1: ["Mainly clear", "Clear", "02"],
@@ -15,25 +27,25 @@ const weatherConditions = {
 };
 
 exports.getWeather = async (req, res) => {
+  let stage = "geocoding";
   try {
     const city = req.params.city;
-    const locationResponse = await axios.get("https://geocoding-api.open-meteo.com/v1/search", {
-      params: { name: city, count: 1, language: "en", format: "json" },
+    const locationData = await getJson("https://geocoding-api.open-meteo.com/v1/search", {
+      name: city, count: 1, language: "en", format: "json",
     });
-    const location = locationResponse.data.results?.[0];
+    const location = locationData.results?.[0];
     if (!location) return res.status(404).json({ message: "City not found" });
 
-    const weatherResponse = await axios.get("https://api.open-meteo.com/v1/forecast", {
-      params: {
-        latitude: location.latitude,
-        longitude: location.longitude,
-        current: "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,surface_pressure",
-        daily: "sunrise,sunset",
-        timezone: "auto",
-        forecast_days: 1,
-      },
+    stage = "weather";
+    const data = await getJson("https://api.open-meteo.com/v1/forecast", {
+      latitude: location.latitude,
+      longitude: location.longitude,
+      current: "temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,surface_pressure",
+      daily: "sunrise,sunset",
+      timezone: "auto",
+      forecast_days: 1,
     });
-    const { current, daily, utc_offset_seconds: offset = 0 } = weatherResponse.data;
+    const { current, daily, utc_offset_seconds: offset = 0 } = data;
     const [description, main, icon] = weatherConditions[current.weather_code] || ["Unknown", "Clear", "01"];
     const toUnixTime = (value) => Math.floor(Date.parse(value + "Z") / 1000) - offset;
 
@@ -46,7 +58,7 @@ exports.getWeather = async (req, res) => {
       weather: [{ main, description, icon: icon + (current.is_day ? "d" : "n") }],
     });
   } catch (error) {
-    console.error("Weather request failed:", JSON.stringify({ status: error.response?.status, data: error.response?.data, message: error.message, code: error.code }));
+    console.error("Weather request failed:", JSON.stringify({ stage, status: error.status, data: error.data, message: error.message, name: error.name }));
     res.status(502).json({ message: "Weather service is temporarily unavailable" });
   }
 };
